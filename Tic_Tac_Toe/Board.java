@@ -2,90 +2,92 @@ package Tic_Tac_Toe;
 
 public class Board {
     private Cell[][] board;
-    private int row;
-    private int column;
+    private int rowLength;
+    private int columnLength;
 
-    public Board(int row, int column) {
-        this.row = row;
-        this.column = column;
-        board = new Cell[row][column];
+    public Board(int rowLength, int columnLength) {
+        if (rowLength <= 0 || columnLength <= 0) {
+            throw new IllegalArgumentException("Board dimensions must be positive");
+        }
+        this.rowLength = rowLength;
+        this.columnLength = columnLength;
+        board = new Cell[rowLength][columnLength];
         this.initializeBoard();
     }
 
     void initializeBoard() {
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < column; j++) {
-                board[i][j] = new Cell(i, j, '-');
+        for (int i = 0; i < rowLength; i++) {
+            for (int j = 0; j < columnLength; j++) {
+                board[i][j] = new Cell(i, j, null);
             }
         }
     }
 
     public void printBoard() {
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < column; j++) {
-                System.out.print(board[i][j].getSymbol() + "  ");
+        for (int i = 0; i < rowLength; i++) {
+            for (int j = 0; j < columnLength; j++) {
+                char symbol = board[i][j].isEmpty() ? '-' : board[i][j].getPlayerSymbol().toString().charAt(0);
+                System.out.print(symbol + "  ");
             }
             System.out.println();
         }
     }
 
-    public boolean placeSymbol(int row, int column, char symbol) {
-        if (row >= 0 && row < this.row && column >= 0 && column < this.column && board[row][column].isEmpty()) {
+    public void placeSymbol(int row, int column, PlayerSymbol symbol) {
+        if (row >= 0 && row < this.rowLength && column >= 0 && column < this.columnLength && board[row][column].isEmpty()) {
             board[row][column] = new Cell(row, column, symbol);
-            return true;
         } else {
-            System.out.println("Invalid position or cell already occupied");
-            return false;
+            throw new IllegalArgumentException("Invalid position or cell already occupied");
         }
     }
 
     public boolean isWinner(Player player) {
-        char symbol = player.getPlayerSymbol();
+        PlayerSymbol symbol = player.getPlayerSymbol();
 
-        // diagonal check
-        for (int i = 0; i < row; i++) {
-            if (board[i][i].getSymbol() != symbol) break;
-            if (i == row - 1) return true;
+        if (rowLength == columnLength) {
+            boolean mainDiagonal = true;
+            boolean antiDiagonal = true;
+            for (int i = 0; i < rowLength; i++) {
+                if (board[i][i].getPlayerSymbol() != symbol) {
+                    mainDiagonal = false;
+                }
+                if (board[i][columnLength - i - 1].getPlayerSymbol() != symbol) {
+                    antiDiagonal = false;
+                }
+            }
+            if (mainDiagonal || antiDiagonal) return true;
         }
 
-        // anti-diagonal check
-        for (int i = 0; i < row; i++) {
-            if (board[i][column - i - 1].getSymbol() != symbol) break;
-            if (i == row - 1) return true;
-        }
-        
-        // row check
-        for (int i = 0; i < row; i++) {
+        for (int i = 0; i < rowLength; i++) {
             int count = 0;
-            for (int j = 0; j < column; j++) {
-                if (board[i][j].getSymbol() == symbol) {
+            for (int j = 0; j < columnLength; j++) {
+                if (board[i][j].getPlayerSymbol() == symbol) {
                     count++;
                 } else {
                     break;
                 }
             }
-            if (count == column) return true;
+            if (count == columnLength) return true;
         }
 
-        // column check
-        for (int j = 0; j < column; j++) {
+        for (int j = 0; j < columnLength; j++) {
             int count = 0;
-            for (int i = 0; i < row; i++) {
-                if (board[i][j].getSymbol() == symbol) {
+            for (int i = 0; i < rowLength; i++) {
+                if (board[i][j].getPlayerSymbol() == symbol) {
                     count++;
                 } else {
                     break;
                 }
             }
-            if (count == row) return true;
+            if (count == rowLength) return true;
         }
 
         return false;
     }
 
     public boolean isDraw() {
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < column; j++) {
+        for (int i = 0; i < rowLength; i++) {
+            for (int j = 0; j < columnLength; j++) {
                 if (board[i][j].isEmpty()) return false;
             }
         }

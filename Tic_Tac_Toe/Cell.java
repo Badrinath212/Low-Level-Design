@@ -3,19 +3,19 @@ package Tic_Tac_Toe;
 public class Cell {
     private int row;
     private int column;
-    private char symbol;
+    private PlayerSymbol playerSymbol;
 
-    public Cell(int row, int column, char symbol) {
+    public Cell(int row, int column, PlayerSymbol playerSymbol) {
         this.row = row;
         this.column = column;
-        this.symbol = symbol;
+        this.playerSymbol = playerSymbol;
     }
 
-    public char getSymbol() {
-        return symbol;
+    public PlayerSymbol getPlayerSymbol() {
+        return playerSymbol;
     }
 
     public boolean isEmpty() {
-        return symbol == '-';
+        return playerSymbol == null;
     }
 }
