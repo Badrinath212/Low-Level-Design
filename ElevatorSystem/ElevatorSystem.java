@@ -1,16 +1,16 @@
 package ElevatorSystem;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 public class ElevatorSystem {
-    List<Elevator> elevators;
-    List<Floor> floors;
-    int totalFloors;
-    Map<Integer, Elevator> elevatorMap = new HashMap<>();
+    private final List<Elevator> elevators;
+    private final List<Floor> floors;
+    private final int totalFloors;
+    private final Map<Integer, Elevator> elevatorMap = new HashMap<>();
 
     public ElevatorSystem(List<Elevator> elevators, int totalFloors, List<Floor> floors) {
         if (elevators == null || elevators.isEmpty()) {
@@ -24,38 +24,107 @@ public class ElevatorSystem {
             throw new IllegalArgumentException("Floors list cannot be null or empty");
         }
 
-        this .elevators = elevators;
+        this.elevators = new ArrayList<>(elevators);
         this.totalFloors = totalFloors;
-        this.floors = floors;
-        for (Elevator elevator : elevators) {
-            elevatorMap.put(elevator.getElevatorNumber(), elevator);
+        if (floors.size() != totalFloors) {
+            throw new IllegalArgumentException("Number of floors provided does not match totalFloors");
+        }
+        List<Floor> floorsByNumber = new ArrayList<>(Collections.nCopies(totalFloors, null));
+        for (Floor floor : floors) {
+            Objects.requireNonNull(floor, "Floor cannot be null");
+            int floorNumber = floor.getFloorNumber();
+            if (floorNumber < 0 || floorNumber >= totalFloors || floorsByNumber.get(floorNumber) != null) {
+                throw new IllegalArgumentException("Floor numbers must be unique and within the building");
+            }
+            floorsByNumber.set(floorNumber, floor);
+        }
+        this.floors = Collections.unmodifiableList(floorsByNumber);
+        for (Elevator elevator : this.elevators) {
+            Objects.requireNonNull(elevator, "Elevator cannot be null");
+            int currentFloor = elevator.getCurrentFloor().getFloorNumber();
+            if (currentFloor < 0 || currentFloor >= totalFloors) {
+                throw new IllegalArgumentException("Elevator current floor is outside the building");
+            }
+            for (int stop : elevator.getStops()) {
+                if (stop >= totalFloors) {
+                    throw new IllegalArgumentException("Elevator stop is outside the building");
+                }
+            }
+            if (elevatorMap.putIfAbsent(elevator.getElevatorNumber(), elevator) != null) {
+                throw new IllegalArgumentException("Elevator numbers must be unique");
+            }
         }
     }
 
     public int bookElevator(int requestedFloor, int destinationFloor) {
+        if (requestedFloor < 0 || requestedFloor >= totalFloors) {
+            throw new IllegalArgumentException("Invalid requested floor: " + requestedFloor);
+        }
         if (destinationFloor < 0 || destinationFloor >= totalFloors) {
             throw new IllegalArgumentException("Invalid destination floor: " + destinationFloor);
         }
 
-        // Determine the direction of the request
+        if (requestedFloor == destinationFloor) {
+            throw new IllegalArgumentException("Requested floor and destination floor cannot be the same");
+        }
+
         Direction requestDirection = (destinationFloor > requestedFloor) ? Direction.UP : Direction.DOWN;
-        // Elevator number and distance(in floors) to requested floor
-        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[1] - b[1]);
+        Elevator selectedElevator = null;
+        int shortestDistance = Integer.MAX_VALUE;
         for (Elevator elevator : elevators) {
-            if (elevator.getDirection() == Direction.IDLE || elevator.getDirection() == requestDirection) {
+            if (canServeInCurrentDirection(elevator, requestDirection, requestedFloor)) {
                 int distance = Math.abs(elevator.getCurrentFloor().getFloorNumber() - requestedFloor);
-                pq.offer(new int[]{elevator.getElevatorNumber(), distance});
+                if (distance < shortestDistance) {
+                    selectedElevator = elevator;
+                    shortestDistance = distance;
+                }
             }
         }
 
-        if (pq.isEmpty()) {
+        if (selectedElevator == null) {
+            for (Elevator elevator : elevators) {
+                int distance = Math.abs(elevator.getCurrentFloor().getFloorNumber() - requestedFloor);
+                if (distance < shortestDistance) {
+                    selectedElevator = elevator;
+                    shortestDistance = distance;
+                }
+            }
+        }
+
+        if (selectedElevator == null) {
             return -1;
         }
-        int selectedElevatorNumber = pq.poll()[0];
-        Elevator selectedElevator = elevatorMap.get(selectedElevatorNumber);
-        selectedElevator.addRequestedStop(destinationFloor);
-        return selectedElevatorNumber;
+        selectedElevator.assignRequest(requestedFloor, destinationFloor);
+        return selectedElevator.getElevatorNumber();
     }
+
+    public Elevator getElevator(int elevatorNumber) {
+        Elevator elevator = elevatorMap.get(elevatorNumber);
+        if (elevator == null) {
+            throw new IllegalArgumentException("Unknown elevator number: " + elevatorNumber);
+        }
+        return elevator;
+    }
+
+    private boolean canServeInCurrentDirection(Elevator elevator, Direction requestDirection, int requestedFloor) {
+        if (elevator.getDirection() == Direction.IDLE) {
+            return true;
+        }
+        int elevatorFloor = elevator.getCurrentFloor().getFloorNumber();
+        return (elevator.getDirection() == Direction.UP
+                && requestDirection == Direction.UP && elevatorFloor <= requestedFloor)
+            || (elevator.getDirection() == Direction.DOWN
+                && requestDirection == Direction.DOWN && elevatorFloor >= requestedFloor);
+    }
+
+    public void advanceOneStep() {
+        for (Elevator elevator : elevators) {
+            if (elevator.getDoorState() == DoorState.CLOSED) {
+                elevator.advanceOneFloor(floors);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         ElevatorSystem elevatorSystem = new ElevatorSystem(
             List.of(
@@ -63,7 +132,7 @@ public class ElevatorSystem {
                 new Elevator("E2", new Floor("F2", 5), Direction.IDLE, DoorState.CLOSED, 2, List.of(), List.of()),
                 new Elevator("E3", new Floor("F3", 2), Direction.IDLE, DoorState.CLOSED, 3, List.of(), List.of()),
                 new Elevator("E4", new Floor("F4", 3), Direction.UP, DoorState.CLOSED, 4, List.of(), List.of()),
-                new Elevator("E5", new Floor("F5", 1), Direction.DOWN, DoorState.CLOSED, 5, List.of(), List.of()),
+                new Elevator("E5", new Floor("F5", 1), Direction.DOWN, DoorState.CLOSED, 5, List.of(), List.of())
             ),  
             10,
             List.of(
