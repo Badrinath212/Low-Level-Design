@@ -16,6 +16,11 @@ public class Elevator {
     private List<Integer> requestedStops;
     private final Map<Integer, List<Integer>> destinationsByPickup = new HashMap<>();
 
+    public Elevator(int elevatorNumber, int floorNumber) {
+        this("E" + elevatorNumber, new Floor("F" + floorNumber, floorNumber), Direction.IDLE, DoorState.CLOSED, elevatorNumber,
+                new ArrayList<>(), new ArrayList<>());
+    }
+
     public Elevator(String elevatorId, Floor currentFloor, Direction direction, DoorState doorState, int elevatorNumber, List<Integer> pendingStops, List<Integer> requestedStops) {
         this.elevatorId = Objects.requireNonNull(elevatorId, "Elevator ID cannot be null");
         this.currentFloor = Objects.requireNonNull(currentFloor, "Current floor cannot be null");

@@ -12,6 +12,7 @@ public class ElevatorSystem {
     private final int totalFloors;
     private final Map<Integer, Elevator> elevatorMap = new HashMap<>();
 
+
     public ElevatorSystem(List<Elevator> elevators, int totalFloors, List<Floor> floors) {
         if (elevators == null || elevators.isEmpty()) {
             throw new IllegalArgumentException("Elevators list cannot be null or empty");
@@ -33,6 +34,7 @@ public class ElevatorSystem {
         for (Floor floor : floors) {
             Objects.requireNonNull(floor, "Floor cannot be null");
             int floorNumber = floor.getFloorNumber();
+            System.out.println("Floor number: " + floorNumber);
             if (floorNumber < 0 || floorNumber >= totalFloors || floorsByNumber.get(floorNumber) != null) {
                 throw new IllegalArgumentException("Floor numbers must be unique and within the building");
             }
@@ -55,6 +57,7 @@ public class ElevatorSystem {
             }
         }
     }
+
 
     public int bookElevator(int requestedFloor, int destinationFloor) {
         if (requestedFloor < 0 || requestedFloor >= totalFloors) {
