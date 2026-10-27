@@ -55,5 +55,10 @@ class ElevatorTest {
 
         assertEquals(2, selectedElevator);
     }
+
+    @Test
+    void shouldStartWithClosedDoors() {
+        assertEquals(DoorState.CLOSED, elevator.getDoorState());
+    }
     
 }

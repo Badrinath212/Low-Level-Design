@@ -1,5 +1,5 @@
 package ElevatorSystem;
 
-public enum Direction {
+public enum  Direction {
     UP, DOWN, IDLE
 }
