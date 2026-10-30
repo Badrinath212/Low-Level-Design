@@ -1,0 +1,9 @@
+package ATMSystem;
+
+public enum WithDrawStatus {
+    INVALID_PIN,
+    INSUFFICIENT_MONEY,
+    INSUFFICIENT_ATM_FUNDS,
+    INSUFFICIENT_ATM_NOTES,
+    SUCCESS
+}
