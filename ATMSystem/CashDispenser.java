@@ -44,8 +44,6 @@ public class CashDispenser {
             curAmount -= inventoryArr[0] * 100;
         }
 
-        if ()
-
         return curAmount == 0 ? arr : new int[0];
     }
 
