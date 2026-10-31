@@ -20,7 +20,7 @@ public class BankCard {
         if (holderName == null || holderName.isBlank() || expiry == null || expiry.isBlank()) {
             throw new IllegalArgumentException("Invalid card");
         }
-        this. holderName = holderName;
+        this.holderName = holderName;
         this.expiry = expiry;
         this.cvv = cvv;
         this.bankCode = bankCode;
@@ -38,18 +38,13 @@ public class BankCard {
         return bankCode;
     }
 
-     public boolean isCardExpired() {
-        // 1. Build a formatter specifically for MM/YY (2-digit year)
+    public boolean isCardExpired() {
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-                .appendPattern("MM/")
-                .appendValue(ChronoField.YEAR_OF_ERA, 2)
+                .appendPattern("MM/uu")
+                .parseDefaulting(ChronoField.ERA, 1) // CE era
                 .toFormatter();
 
-        // 2. Parse the input string into a YearMonth object
         YearMonth expiryDate = YearMonth.parse(expiry, formatter);
-
-        // 3. Compare it directly to the current year and month
-        // Returns true if the expiry month is strictly before the current month
         return expiryDate.isBefore(YearMonth.now());
     }
 
