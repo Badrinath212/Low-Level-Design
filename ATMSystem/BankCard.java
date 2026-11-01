@@ -9,10 +9,9 @@ public class BankCard {
     private String cardNumber;
     private String holderName;
     private String expiry;
-    private int cvv;
     private String bankCode;
 
-    public BankCard(String cardNumber, String holderName, String expiry, int cvv, String bankCode) {
+    public BankCard(String cardNumber, String holderName, String expiry, String bankCode) {
         if (cardNumber == null || cardNumber.isBlank() || cardNumber.length() != 16) {
             throw new IllegalArgumentException("Invalid card");
         }
@@ -22,7 +21,6 @@ public class BankCard {
         }
         this.holderName = holderName;
         this.expiry = expiry;
-        this.cvv = cvv;
         this.bankCode = bankCode;
     }
 

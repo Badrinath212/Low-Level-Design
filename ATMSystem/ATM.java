@@ -1,59 +1,116 @@
 package ATMSystem;
 
 public class ATM {
-    public ATMState atmState = ATMState.IDLE;
-    public BankCard bankCard;
-    public BankService bankService;
+    private ATMState atmState = ATMState.IDLE;
+    private BankCard bankCard;
+    private final BankService bankService;
+    private final CashDispenser cashDispenser;
 
-    public ATM(BankCard bankCard) {
-        if (bankCard == null) {
-            throw new IllegalArgumentException("Invalid Card");
+    public ATM(CashDispenser cashDispenser, BankService bankService) {
+        if (cashDispenser == null || bankService == null) {
+            throw new IllegalArgumentException("Cash dispenser and bank service are required");
         }
-        this.bankCard = bankCard;
-        if (bankCard.getBankCode().equals("HDFC")) {
-            this.bankService = new HDFCBankService();
-        }
-        insertCard(bankCard);
+        this.bankService = bankService;
+        this.cashDispenser = cashDispenser;
     }
 
     public static void main(String[] args) {
+        CashDispenser cashDispenser = new CashDispenser();
+        int[] arr = new int[]{10, 10, 10};
+        cashDispenser.updateInventory(arr);
 
-        BankCard bankCard = new BankCard("1234567890123456", "Badri", "09/28", 123, "HDFC");
-        ATM atm  = new ATM(bankCard);
-        double balance = atm.checkBalance(bankCard, 1234);
+        BankCard bankCard = new BankCard("1234567890123456", "Badri", "09/28", "HDFC");
+        BankService bankService = new HDFCBankService();
+        ATM atm = new ATM(cashDispenser, bankService);
+        atm.insertCard(bankCard);
 
-        System.out.println(balance);
+        double balance = atm.checkBalance(1234);
+        System.out.println("Balance: " + balance);
 
-        WithDrawStatus withdrawReq = atm.withdrawAmount(bankCard, 2000, 1234);
-
+        WithDrawStatus withdrawReq = atm.withdrawAmount(2000, 1234);
         System.out.println("Withdraw status: " + withdrawReq);
-
     }
 
-    public void changeATMState(ATMState atmState) {
+    private void changeATMState(ATMState atmState) {
         this.atmState = atmState;
     }
 
-    public void insertCard(BankCard bankCard) {
+    public synchronized ATMState getState() {
+        return atmState;
+    }
+
+    public synchronized void insertCard(BankCard bankCard) {
+        if (atmState != ATMState.IDLE) {
+            throw new IllegalStateException("Eject the current card before inserting another card");
+        }
+        if (bankCard == null) {
+            throw new IllegalArgumentException("Card is required");
+        }
+
         changeATMState(ATMState.CARD_INSERTED);
-        if (bankCard.isCardExpired()) {
-            throw new RuntimeException("Invalid Card");
+        try {
+            if (bankCard.isCardExpired()) {
+                throw new IllegalArgumentException("Card is expired");
+            }
+            if (!bankService.validateCard(bankCard)) {
+                throw new IllegalArgumentException("Card is invalid");
+            }
+            this.bankCard = bankCard;
+            changeATMState(ATMState.CARD_VALIDATED);
+        } finally {
+            if (atmState == ATMState.CARD_INSERTED) {
+                changeATMState(ATMState.IDLE);
+            }
         }
-        changeATMState(ATMState.AUTHENTICATED);
     }
 
-    public double checkBalance(BankCard bankCard, int pin) {
-        if (atmState != ATMState.AUTHENTICATED)  {
-            throw new RuntimeException("Invalid card!");
+    public synchronized void ejectCard() {
+        if (atmState == ATMState.PROCESSING) {
+            throw new IllegalStateException("Cannot eject card while a transaction is processing");
         }
-        double balance = bankService.checkBalance(bankCard, pin);
-        return balance;
+        bankCard = null;
+        changeATMState(ATMState.IDLE);
     }
 
-    public WithDrawStatus withdrawAmount(BankCard bankCard, int requestedMoney, int pin) {
-        if (atmState != ATMState.AUTHENTICATED)  {
-            throw new RuntimeException("Invalid card!");
+    public synchronized double checkBalance(int pin) {
+        ensureCardValidated();
+        changeATMState(ATMState.PROCESSING);
+        try {
+            return bankService.checkBalance(bankCard, pin);
+        } finally {
+            changeATMState(ATMState.CARD_VALIDATED);
         }
-        return bankService.withdrawAmount(bankCard, pin, requestedMoney);
+    }
+
+    public synchronized WithDrawStatus withdrawAmount(int requestedMoney, int pin) {
+        ensureCardValidated();
+        if (requestedMoney <= 0 || requestedMoney % 100 != 0) {
+            throw new IllegalArgumentException("Withdrawal amount must be a positive multiple of 100");
+        }
+
+        changeATMState(ATMState.PROCESSING);
+        try {
+            synchronized (cashDispenser) {
+                int[] notes = cashDispenser.prepareWithDraw(requestedMoney);
+                if (notes.length == 0) {
+                    return WithDrawStatus.INSUFFICIENT_ATM_NOTES;
+                }
+
+                WithDrawStatus bankStatus = bankService.withdrawAmount(bankCard, pin, requestedMoney);
+                if (bankStatus != WithDrawStatus.SUCCESS) {
+                    return bankStatus;
+                }
+
+                return cashDispenser.dispatchAmount(notes, requestedMoney);
+            }
+        } finally {
+            changeATMState(ATMState.CARD_VALIDATED);
+        }
+    }
+
+    private void ensureCardValidated() {
+        if (atmState != ATMState.CARD_VALIDATED || bankCard == null) {
+            throw new IllegalStateException("Insert and validate a card first");
+        }
     }
 }

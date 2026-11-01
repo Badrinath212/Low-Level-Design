@@ -10,12 +10,18 @@ public class HDFCBankService implements BankService{
 
     public double checkBalance(BankCard bankCard, int pin) {
         // calls the bank server with card number and pin 
+        if (pin != 1234) {
+            throw new RuntimeException("Invalid Pin");
+        }
         // if valid returns the users balance
         return 123.0;
     }
 
     public WithDrawStatus withdrawAmount(BankCard bankCard, int pin, long requestedAmount) {
         // calls the bank server with the card number, expiry, pin and requestedAmount
+        if (pin != 1234) {
+            throw new RuntimeException("Invalid Pin");
+        }
         // if card is valid and user have enough money 
         // request is succeed 
         return WithDrawStatus.SUCCESS;

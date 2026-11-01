@@ -1,84 +1,77 @@
 package ATMSystem;
 
 public class CashDispenser {
-    // 0 -> 100RS, 1 -> 200RS, 2 -> 500RS
-    int[] inventoryArr = new int[3];
-    CashCollectorState cashCollectorState = CashCollectorState.CLOSED;
+    private static final int[] DENOMINATIONS = {100, 200, 500};
+    private final int[] inventoryArr = new int[DENOMINATIONS.length];
+    private CashCollectorState cashCollectorState = CashCollectorState.CLOSED;
 
-    public void updateInventory(int[] arr) {
-        for (int i = 0; i < 3; i++) {
-            inventoryArr[i]+= arr[i];
+    public synchronized void updateInventory(int[] arr) {
+        if (arr == null || arr.length != inventoryArr.length) {
+            throw new IllegalArgumentException("Inventory must contain counts for all denominations");
+        }
+        for (int i = 0; i < inventoryArr.length; i++) {
+            if (arr[i] < 0 || arr[i] > Integer.MAX_VALUE - inventoryArr[i]) {
+                throw new IllegalArgumentException("Inventory counts must be nonnegative and within range");
+            }
+        }
+        for (int i = 0; i < inventoryArr.length; i++) {
+            inventoryArr[i] += arr[i];
         }
     }
 
-    public int[] prepareWithDraw(int requestedAmount) {
-        int[] arr = new int[3];
-        int curAmount = requestedAmount;
-        // try with 500RS
-        int requiredNotes_500 = requestedAmount / 500;
-        if (inventoryArr[2] >= requiredNotes_500) {
-            arr[2] = requiredNotes_500;
-            curAmount -= requiredNotes_500 * 500; 
-        } else {
-            curAmount-= (inventoryArr[2] * 500);
-            arr[2] = inventoryArr[2];
+    public synchronized int[] prepareWithDraw(int requestedAmount) {
+        if (requestedAmount <= 0 || requestedAmount % DENOMINATIONS[0] != 0) {
+            return new int[0];
         }
 
-        // try with 200RS
-        int requiredNotes_200 = curAmount / 200;
-        if (inventoryArr[1] >= requiredNotes_200) {
-            arr[1] = requiredNotes_200;
-            curAmount -= requiredNotes_200 * 200;
-        } else {
-            curAmount -= inventoryArr[1] * 200;
-            arr[1] = inventoryArr[1];
+        int[] notes = new int[DENOMINATIONS.length];
+        int remaining = requestedAmount;
+        for (int i = DENOMINATIONS.length - 1; i >= 0; i--) {
+            notes[i] = Math.min(remaining / DENOMINATIONS[i], inventoryArr[i]);
+            remaining -= notes[i] * DENOMINATIONS[i];
         }
-
-        // try with 100RS
-        int requiredNotes_100 = curAmount / 100;
-        if (inventoryArr[0] >= requiredNotes_100) {
-            arr[0] = requiredNotes_100;
-            curAmount -= requiredNotes_100 * 100;
-        } else {
-            arr[0] = inventoryArr[0];
-            curAmount -= inventoryArr[0] * 100;
-        }
-
-        return curAmount == 0 ? arr : new int[0];
+        return remaining == 0 ? notes : new int[0];
     }
 
-    public WithDrawStatus dispatchAmount(int[] requestArr, int requestedAmount) {
-        if (requestArr.length == 0) return WithDrawStatus.INSUFFICIENT_ATM_NOTES;
-
-        for (int i = 0; i < 3; i++) {
-            inventoryArr[i]-= requestArr[i];
+    public synchronized WithDrawStatus dispatchAmount(int[] requestArr, int requestedAmount) {
+        if (requestArr == null || requestArr.length != inventoryArr.length || requestedAmount <= 0) {
+            return WithDrawStatus.INSUFFICIENT_ATM_NOTES;
         }
 
+        long total = 0;
+        for (int i = 0; i < requestArr.length; i++) {
+            if (requestArr[i] < 0 || requestArr[i] > inventoryArr[i]) {
+                return WithDrawStatus.INSUFFICIENT_ATM_NOTES;
+            }
+            total += (long) requestArr[i] * DENOMINATIONS[i];
+        }
+        if (total != requestedAmount) {
+            return WithDrawStatus.INSUFFICIENT_ATM_NOTES;
+        }
+
+        for (int i = 0; i < inventoryArr.length; i++) {
+            inventoryArr[i] -= requestArr[i];
+        }
         return WithDrawStatus.SUCCESS;
     }
 
-    public double getTotalATMMoney() {
-        double totalAmount = 0;
-        
-        totalAmount += inventoryArr[0] * 100;
-        totalAmount += inventoryArr[1] * 200;
-        totalAmount += inventoryArr[2] * 500;
+    public synchronized double getTotalATMMoney() {
+        long totalAmount = 0;
+        for (int i = 0; i < inventoryArr.length; i++) {
+            totalAmount += (long) inventoryArr[i] * DENOMINATIONS[i];
+        }
         return totalAmount;
     }
 
-    public void openCashCollector() {
-        if (cashCollectorState.OPENED == getCashCollectorState()) return;
-        cashCollectorState = cashCollectorState.CLOSED;
-        return;
+    public synchronized void openCashCollector() {
+        cashCollectorState = CashCollectorState.OPENED;
     }
 
-    public void closeCashCollector() {
-        if (cashCollectorState.CLOSED == getCashCollectorState()) return;
-        cashCollectorState = cashCollectorState.OPENED;
-        return;
+    public synchronized void closeCashCollector() {
+        cashCollectorState = CashCollectorState.CLOSED;
     }
 
-    public CashCollectorState getCashCollectorState() {
+    public synchronized CashCollectorState getCashCollectorState() {
         return cashCollectorState;
     }
 }
