@@ -8,4 +8,8 @@ public class User {
     private String email;
     private String phoneNumber;
     private List<Booking> bookings;
+
+    public String getUserId() {
+        return userId;
+    }
 }
