@@ -2,6 +2,7 @@ package HotelBookingSystem;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 public class Room {
     private String roomId;
@@ -11,9 +12,30 @@ public class Room {
     private int floorNumber;
     private List<Booking> upcomingBookings;
 
+    public Room(String roomId, RoomType roomType, String hotelId, int roomNumber, int floorNumber, List<Booking> upcomingBookings) {
+        this.roomId = Objects.requireNonNull(roomId, "Room ID cannot be null");
+        this.roomType = Objects.requireNonNull(roomType, "Room type cannot be null");
+        this.hotelId = Objects.requireNonNull(hotelId, "Hotel ID cannot be null");
+        this.roomNumber = roomNumber;
+        this.floorNumber = floorNumber;
+        this.upcomingBookings = Objects.requireNonNull(upcomingBookings, "Upcoming bookings list cannot be null");
+    }
+
 
     public RoomType getRoomType() {
         return roomType;
+    }
+
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public void addBooking(Booking booking) {
+        upcomingBookings.add(booking);
+    }
+
+    public void removeBooking(Booking booking) {
+        upcomingBookings.remove(booking);
     }
 
     public synchronized String isAvailable(LocalDate checkInDate, LocalDate checkOutDate) {

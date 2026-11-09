@@ -28,4 +28,16 @@ public class Booking {
     public LocalDate getCheckOutDate() {
         return checkOutDate;
     }
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public String getHotelId() {
+        return hotelId;
+    }
+
+    public String getRoomId() {
+        return roomId;
+    }
 }

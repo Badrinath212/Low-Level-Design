@@ -1,6 +1,7 @@
 package HotelBookingSystem;
 
 import java.util.List;
+import java.util.Objects;
 
 public class User {
     private String userId;
@@ -8,6 +9,14 @@ public class User {
     private String email;
     private String phoneNumber;
     private List<Booking> bookings;
+
+    public User(String userId, String name, String email, String phoneNumber, List<Booking> bookings) {
+        this.userId = Objects.requireNonNull(userId, "User ID cannot be null");
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
+        this.email = Objects.requireNonNull(email, "Email cannot be null");
+        this.phoneNumber = Objects.requireNonNull(phoneNumber, "Phone number cannot be null");
+        this.bookings = Objects.requireNonNull(bookings, "Bookings list cannot be null");
+    }
 
     public String getUserId() {
         return userId;
