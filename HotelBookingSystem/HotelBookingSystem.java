@@ -52,6 +52,11 @@ public class HotelBookingSystem {
 
         HotelBookingSystem bookingSystem = new HotelBookingSystem(hotels, users, new HashMap<>());
 
+        List<AvailabilityResponseDTO> availability = bookingSystem.checkAvailability(LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 12));
+        for (AvailabilityResponseDTO response : availability) { 
+            System.out.println(response.toString());
+        }
+
         boolean isAvailable = bookingSystem.checkAvailability(hotels.get(0).getHotelId(), RoomType.SINGLE, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 12));
         System.out.println("Is room available: " + isAvailable);
 
@@ -65,6 +70,22 @@ public class HotelBookingSystem {
 
     public void addUser(User user) {
         users.add(user);
+    }
+
+    public synchronized List<AvailabilityResponseDTO> checkAvailability(LocalDate checkInDate, LocalDate checkOutDate) {
+        if (checkInDate.isAfter(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date cannot be after check-out date");
+        }
+        List<AvailabilityResponseDTO> availabilityList = new ArrayList<>();
+        for (Hotel hotel : hotels) {
+            int noOfSingleRoomsAvailable = hotel.getNoOfSingleRoomsAvailable(checkInDate, checkOutDate);
+            int noOfDoubleRoomsAvailable = hotel.getNoOfDoubleRoomsAvailable(checkInDate, checkOutDate);
+            int noOfSuiteRoomsAvailable = hotel.getNoOfSuiteRoomsAvailable(checkInDate, checkOutDate);
+
+            availabilityList.add(new AvailabilityResponseDTO(hotel.getHotelId(), hotel.getHotelName(), noOfSingleRoomsAvailable, noOfDoubleRoomsAvailable, noOfSuiteRoomsAvailable));
+        }
+
+        return availabilityList;
     }
 
     public synchronized boolean checkAvailability(String hotelId, RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) {

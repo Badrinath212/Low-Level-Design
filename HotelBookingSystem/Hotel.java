@@ -31,11 +31,45 @@ public class Hotel {
         return null;
     }
 
+    public synchronized int getNoOfSingleRoomsAvailable(LocalDate checkInDate, LocalDate checkOutDate) {
+        int count = 0;
+        for (Room room : rooms) {
+            if (room.getRoomType() == RoomType.SINGLE && room.isAvailable(checkInDate, checkOutDate) != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public synchronized int getNoOfDoubleRoomsAvailable(LocalDate checkInDate, LocalDate checkOutDate) {
+        int count = 0;
+        for (Room room : rooms) {
+            if (room.getRoomType() == RoomType.DOUBLE && room.isAvailable(checkInDate, checkOutDate) != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public synchronized int getNoOfSuiteRoomsAvailable(LocalDate checkInDate, LocalDate checkOutDate) {
+        int count = 0;
+        for (Room room : rooms) {
+            if (room.getRoomType() == RoomType.SUITE && room.isAvailable(checkInDate, checkOutDate) != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public String getHotelId() {
         return hotelId;
     }
 
     public List<Room> getRooms() {
         return rooms;
+    }
+
+    public String getHotelName() {
+        return hotelName;
     }
 }
