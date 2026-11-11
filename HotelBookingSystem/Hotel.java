@@ -20,6 +20,18 @@ public class Hotel {
     }
 
     public synchronized String isRoomAvailable(RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) {
+        if (roomType == null) {
+            throw new IllegalArgumentException("Room type cannot be null");
+        }
+
+        if (checkInDate == null || checkOutDate == null) {
+            throw new IllegalArgumentException("Check-in and check-out dates cannot be null");
+        }
+
+        if (checkInDate.isAfter(checkOutDate) || checkInDate.isEqual(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
+        }
+
         for (Room room : rooms) {
             if (room.getRoomType() == roomType) {
                 String availableRoomId = room.isAvailable(checkInDate, checkOutDate);
@@ -32,6 +44,14 @@ public class Hotel {
     }
 
     public synchronized int getNoOfSingleRoomsAvailable(LocalDate checkInDate, LocalDate checkOutDate) {
+
+        if (checkInDate == null || checkOutDate == null) {
+            throw new IllegalArgumentException("Check-in and check-out dates cannot be null");
+        }
+        if (checkInDate.isAfter(checkOutDate) || checkInDate.isEqual(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
+        }
+
         int count = 0;
         for (Room room : rooms) {
             if (room.getRoomType() == RoomType.SINGLE && room.isAvailable(checkInDate, checkOutDate) != null) {
@@ -42,6 +62,13 @@ public class Hotel {
     }
 
     public synchronized int getNoOfDoubleRoomsAvailable(LocalDate checkInDate, LocalDate checkOutDate) {
+        if (checkInDate == null || checkOutDate == null) {
+            throw new IllegalArgumentException("Check-in and check-out dates cannot be null");
+        }
+        if (checkInDate.isAfter(checkOutDate) || checkInDate.isEqual(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
+        }
+
         int count = 0;
         for (Room room : rooms) {
             if (room.getRoomType() == RoomType.DOUBLE && room.isAvailable(checkInDate, checkOutDate) != null) {
@@ -52,6 +79,12 @@ public class Hotel {
     }
 
     public synchronized int getNoOfSuiteRoomsAvailable(LocalDate checkInDate, LocalDate checkOutDate) {
+        if (checkInDate == null || checkOutDate == null) {
+            throw new IllegalArgumentException("Check-in and check-out dates cannot be null");
+        }
+        if (checkInDate.isAfter(checkOutDate) || checkInDate.isEqual(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
+        }
         int count = 0;
         for (Room room : rooms) {
             if (room.getRoomType() == RoomType.SUITE && room.isAvailable(checkInDate, checkOutDate) != null) {

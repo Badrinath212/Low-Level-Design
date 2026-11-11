@@ -39,6 +39,12 @@ public class Room {
     }
 
     public synchronized String isAvailable(LocalDate checkInDate, LocalDate checkOutDate) {
+        if (checkInDate == null || checkOutDate == null) {
+            throw new IllegalArgumentException("Check-in and check-out dates cannot be null");
+        }
+        if (checkInDate.isAfter(checkOutDate) || checkInDate.isEqual(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
+        }
         for (Booking booking : upcomingBookings) {
             if (booking.getCheckInDate().isBefore(checkOutDate) && booking.getCheckOutDate().isAfter(checkInDate)) {
                 return null;

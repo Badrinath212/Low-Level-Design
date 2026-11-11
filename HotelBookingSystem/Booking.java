@@ -1,6 +1,7 @@
 package HotelBookingSystem;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class Booking {
     private String bookingId;
@@ -12,12 +13,15 @@ public class Booking {
     private BookingStatus bookingStatus;
 
     public Booking(String bookingId, String userId, String hotelId, String roomId, LocalDate checkInDate, LocalDate checkOutDate) {
-        this.bookingId = bookingId;
-        this.userId = userId;
-        this.hotelId = hotelId;
-        this.roomId = roomId;
-        this.checkInDate = checkInDate;
-        this.checkOutDate = checkOutDate;
+        this.bookingId = Objects.requireNonNull(bookingId, "Booking ID cannot be null");
+        this.userId = Objects.requireNonNull(userId, "User ID cannot be null");
+        this.hotelId = Objects.requireNonNull(hotelId, "Hotel ID cannot be null");
+        this.roomId = Objects.requireNonNull(roomId, "Room ID cannot be null");
+        this.checkInDate = Objects.requireNonNull(checkInDate, "Check-in date cannot be null");
+        this.checkOutDate = Objects.requireNonNull(checkOutDate, "Check-out date cannot be null");
+        if (checkInDate.isAfter(checkOutDate) || checkInDate.isEqual(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
+        }
         this.bookingStatus = BookingStatus.CONFIRMED;
     }
 

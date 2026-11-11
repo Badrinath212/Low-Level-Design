@@ -1,5 +1,7 @@
 package HotelBookingSystem;
 
+import java.util.Objects;
+
 public class AvailabilityResponseDTO {
     private String hotelId;
     private String hotelName;
@@ -8,8 +10,8 @@ public class AvailabilityResponseDTO {
     private int noOfSuiteAvailableRooms;
 
     public AvailabilityResponseDTO(String hotelId, String hotelName, int noOfSingleAvailableRooms, int noOfDoubleAvailableRooms, int noOfSuiteAvailableRooms) {
-        this.hotelId = hotelId;
-        this.hotelName = hotelName;
+        this.hotelId = Objects.requireNonNull(hotelId, "Hotel ID cannot be null");
+        this.hotelName = Objects.requireNonNull(hotelName, "Hotel Name cannot be null");
         this.noOfSingleAvailableRooms = noOfSingleAvailableRooms;
         this.noOfDoubleAvailableRooms = noOfDoubleAvailableRooms;
         this.noOfSuiteAvailableRooms = noOfSuiteAvailableRooms;

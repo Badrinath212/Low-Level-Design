@@ -73,8 +73,11 @@ public class HotelBookingSystem {
     }
 
     public synchronized List<AvailabilityResponseDTO> checkAvailability(LocalDate checkInDate, LocalDate checkOutDate) {
-        if (checkInDate.isAfter(checkOutDate)) {
-            throw new IllegalArgumentException("Check-in date cannot be after check-out date");
+        if (checkInDate == null || checkOutDate == null) {
+            throw new IllegalArgumentException("Check-in and check-out dates cannot be null");
+        }
+        if (checkInDate.isAfter(checkOutDate) || checkInDate.isEqual(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date must be before check-out date");
         }
         List<AvailabilityResponseDTO> availabilityList = new ArrayList<>();
         for (Hotel hotel : hotels) {
