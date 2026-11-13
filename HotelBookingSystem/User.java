@@ -1,5 +1,7 @@
 package HotelBookingSystem;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,10 +17,18 @@ public class User {
         this.name = Objects.requireNonNull(name, "Name cannot be null");
         this.email = Objects.requireNonNull(email, "Email cannot be null");
         this.phoneNumber = Objects.requireNonNull(phoneNumber, "Phone number cannot be null");
-        this.bookings = Objects.requireNonNull(bookings, "Bookings list cannot be null");
+        this.bookings = new ArrayList<>(Objects.requireNonNull(bookings, "Bookings list cannot be null"));
     }
 
     public String getUserId() {
         return userId;
+    }
+
+    public List<Booking> getBookings() {
+        return Collections.unmodifiableList(bookings);
+    }
+
+    public void addBooking(Booking booking) {
+        bookings.add(Objects.requireNonNull(booking, "Booking cannot be null"));
     }
 }

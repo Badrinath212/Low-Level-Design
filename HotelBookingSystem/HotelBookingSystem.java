@@ -2,35 +2,25 @@ package HotelBookingSystem;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 public class HotelBookingSystem {
     private List<Hotel> hotels;
     private List<User> users;
-    private Map<String, List<Booking>> bookingsByUser;
 
-    public HotelBookingSystem(List<Hotel> hotels, List<User> users, Map<String, List<Booking>> bookingsByUser) {
-        this.hotels = Objects.requireNonNull(hotels, "Hotels cannot be null");
+    public HotelBookingSystem(List<Hotel> hotels, List<User> users) {
+        Objects.requireNonNull(hotels, "Hotels cannot be null");
         if (hotels.isEmpty()) {
             throw new IllegalArgumentException("Hotels list cannot be empty");
         }
-        this.users = Objects.requireNonNull(users, "Users cannot be null");
+        Objects.requireNonNull(users, "Users cannot be null");
         if (users.isEmpty()) {
             throw new IllegalArgumentException("Users list cannot be empty");
         }
-        this.bookingsByUser = Objects.requireNonNull(bookingsByUser, "Bookings by user cannot be null");
-    }
-
-    public void addUserBooking(String userId, Booking booking) {
-        if (!bookingsByUser.containsKey(userId)) {
-            bookingsByUser.put(userId, new ArrayList<>());
-        }
-        bookingsByUser.get(userId).add(booking);
+        this.hotels = new ArrayList<>(hotels);
+        this.users = new ArrayList<>(users);
     }
 
     public static void main(String[] args) {
@@ -50,7 +40,7 @@ public class HotelBookingSystem {
             new User(UUID.randomUUID().toString(), "Jane Smith", "jane.smith@example.com", "555-5678", new ArrayList<>())
         );
 
-        HotelBookingSystem bookingSystem = new HotelBookingSystem(hotels, users, new HashMap<>());
+        HotelBookingSystem bookingSystem = new HotelBookingSystem(hotels, users);
 
         List<AvailabilityResponseDTO> availability = bookingSystem.checkAvailability(LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 12));
         for (AvailabilityResponseDTO response : availability) { 
@@ -115,7 +105,8 @@ public class HotelBookingSystem {
     }
     
     public synchronized boolean bookRoom(String userId, String hotelId, RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) {
-        if (!isValidUser(userId)) {
+        User user = findUser(userId);
+        if (user == null) {
             return false;
         }
 
@@ -126,7 +117,7 @@ public class HotelBookingSystem {
                 if (availableRoomId != null) {
                     String bookingId = UUID.randomUUID().toString();
                     Booking booking = new Booking(bookingId, userId, hotelId, availableRoomId, checkInDate, checkOutDate);
-                    addUserBooking(userId, booking);
+                    user.addBooking(booking);
                     for (Room room : hotel.getRooms()) {
                         if (room.getRoomId().equals(availableRoomId)) {
                             room.addBooking(booking);
@@ -141,30 +132,26 @@ public class HotelBookingSystem {
     }
 
     public synchronized boolean cancelBooking(String userId, String bookingId) {
-        if (!isValidUser(userId)) {
+        User user = findUser(userId);
+        if (user == null) {
             return false;
         }
 
-        List<Booking> userBookings = bookingsByUser.get(userId);
-        if (userBookings != null) {
-            for (Booking booking : userBookings) {
-                if (booking.getBookingId().equals(bookingId)) {
-                    userBookings.remove(booking);
-                    for (Hotel hotel : hotels) {
-                        if (hotel.getHotelId().equals(booking.getHotelId())) {
-                            for (Room room : hotel.getRooms()) {
-                                if (room.getRoomId().equals(booking.getRoomId())) {
-                                    room.removeBooking(booking);
-                                    return true;
-                                }
-                            }
-                            return false;
-                        }
-                    }
-                }
+        for (Booking booking : user.getBookings()) {
+            if (booking.getBookingId().equals(bookingId) && booking.cancel()) {
+                return true;
             }
         }
         return false;
+    }
+
+    private User findUser(String userId) {
+        for (User user : users) {
+            if (user.getUserId().equals(userId)) {
+                return user;
+            }
+        }
+        return null;
     }
 
 }

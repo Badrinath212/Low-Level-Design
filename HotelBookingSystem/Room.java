@@ -1,6 +1,7 @@
 package HotelBookingSystem;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,7 +19,7 @@ public class Room {
         this.hotelId = Objects.requireNonNull(hotelId, "Hotel ID cannot be null");
         this.roomNumber = roomNumber;
         this.floorNumber = floorNumber;
-        this.upcomingBookings = Objects.requireNonNull(upcomingBookings, "Upcoming bookings list cannot be null");
+        this.upcomingBookings = new ArrayList<>(Objects.requireNonNull(upcomingBookings, "Upcoming bookings list cannot be null"));
     }
 
 
@@ -31,7 +32,7 @@ public class Room {
     }
 
     public void addBooking(Booking booking) {
-        upcomingBookings.add(booking);
+        upcomingBookings.add(Objects.requireNonNull(booking, "Booking cannot be null"));
     }
 
     public void removeBooking(Booking booking) {
@@ -46,7 +47,9 @@ public class Room {
             throw new IllegalArgumentException("Check-in date must be before check-out date");
         }
         for (Booking booking : upcomingBookings) {
-            if (booking.getCheckInDate().isBefore(checkOutDate) && booking.getCheckOutDate().isAfter(checkInDate)) {
+            if (booking.getStatus() != BookingStatus.CANCELLED
+                    && booking.getCheckInDate().isBefore(checkOutDate)
+                    && booking.getCheckOutDate().isAfter(checkInDate)) {
                 return null;
             } 
         }

@@ -1,6 +1,7 @@
 package HotelBookingSystem;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,7 +17,7 @@ public class Hotel {
         this.hotelName = Objects.requireNonNull(hotelName, "Hotel name cannot be null");
         this.address = Objects.requireNonNull(address, "Address cannot be null");
         this.phoneNumber = Objects.requireNonNull(phoneNumber, "Phone number cannot be null");
-        this.rooms = Objects.requireNonNull(rooms, "Rooms list cannot be null");
+        this.rooms = new ArrayList<>(Objects.requireNonNull(rooms, "Rooms list cannot be null"));
     }
 
     public synchronized String isRoomAvailable(RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) {

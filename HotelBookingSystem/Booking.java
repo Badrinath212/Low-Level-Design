@@ -44,4 +44,16 @@ public class Booking {
     public String getRoomId() {
         return roomId;
     }
+
+    public synchronized BookingStatus getStatus() {
+        return bookingStatus;
+    }
+
+    public synchronized boolean cancel() {
+        if (bookingStatus != BookingStatus.CONFIRMED) {
+            return false;
+        }
+        bookingStatus = BookingStatus.CANCELLED;
+        return true;
+    }
 }
