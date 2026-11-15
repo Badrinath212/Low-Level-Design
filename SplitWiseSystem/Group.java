@@ -9,18 +9,22 @@ public class Group {
     private List<User> members;
     private List<Expense> expenses;
     private BalanceSheet balanceSheet;
+    private SplitStrategy splitStrategy = new EqualSplitExpense();
 
     public String getGroupId() {
         return groupId;
     }
 
-    public Map<User, Map<User, Double>> getBalanceSheet() {
+    public Map<User, Map<User, Integer>> getBalanceSheet() {
         return balanceSheet.getBalanceSheet();
     }
 
     public boolean addExpense(Expense expense) {
+        // need to write try catch and finally for revert
         expenses.add(expense);
-        balanceSheet.updateBalances(expense);
+        Map<User, Integer> debts = splitStrategy.equalSplit(expense, balanceSheet);
+        boolean updateResponse = balanceSheet.updateBalanceSheet(debts, expense.getPaidBy());
+        return true;
     }
 
 }
