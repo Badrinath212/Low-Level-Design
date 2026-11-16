@@ -19,11 +19,14 @@ public class Group {
         return balanceSheet.getBalanceSheet();
     }
 
+    public synchronized void addMember(User user) {
+        members.add(user);
+    }
+
     public boolean addExpense(Expense expense) {
-        // need to write try catch and finally for revert
         expenses.add(expense);
         Map<User, Integer> debts = splitStrategy.equalSplit(expense, balanceSheet);
-        boolean updateResponse = balanceSheet.updateBalanceSheet(debts, expense.getPaidBy());
+        balanceSheet.updateBalanceSheet(debts, expense.getPaidBy());
         return true;
     }
 

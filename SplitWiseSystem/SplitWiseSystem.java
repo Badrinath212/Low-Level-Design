@@ -29,7 +29,7 @@ public class SplitWiseSystem {
         
     }
 
-    public Map<User, Map<User, Double>> getBlanceSheetForGroup(String groupId, String userId) {
+    public Map<User, Map<User, Integer>> getBlanceSheetForGroup(String groupId, String userId) {
         if (userId == null || userId.isBlank()) {
             throw new IllegalArgumentException("UserId must contains at least one non-white space character");
         }
@@ -50,8 +50,7 @@ public class SplitWiseSystem {
         return group.getBalanceSheet();
         
     }
-
-    public 
+ 
 
     public Group getGroupById(String groupId) {
         for (Group group : groups) {

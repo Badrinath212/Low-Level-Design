@@ -20,19 +20,29 @@ public class BalanceSheet {
     }
 
     public synchronized boolean updateBalanceSheet(Map<User, Integer> debts, User paidBy) {
-        for (User user : debts.keySet()) {
-            if (!balances.containsKey(user)) return false;
-            Map<User, Integer> crediters = balances.get(user);
-            if (!crediters.containsKey(paidBy)) {
-                crediters.put(paidBy, debts.get(user));
+        for (Map.Entry<User, Integer> entry : debts.entrySet()) {
+            User debtKey = entry.getKey();
+
+            Map<User, Integer> creditorMap = balances.get(paidBy);
+            Map<User, Integer> debtMap = balances.get(debtKey);
+
+            int reverseDebt = creditorMap.getOrDefault(debtKey, 0);
+            int amount = entry.getValue();
+
+
+            if (reverseDebt >= amount) {
+                int remaining = reverseDebt - amount;
+                if (remaining == 0) {
+                    creditorMap.remove(debtKey);
+                } else {
+                    creditorMap.put(debtKey, remaining);
+                }
             } else {
-                crediters.put(paidBy, debts.get(user) + crediters.get(paidBy));
+                creditorMap.remove(debtKey);
+                debtMap.put(paidBy, amount - reverseDebt);
             }
         }
-
-        // one more thing need to check if user A have debt and User B have credit both cancel each other before updating the map
         return true;
-
     }
 
 }
