@@ -45,4 +45,11 @@ public class BalanceSheet {
         return true;
     }
 
+    public synchronized void settleSplit(User debtUser, User creditUser) {
+        if (!balances.get(debtUser).containsKey(creditUser)) {
+            throw new RuntimeException("Invalid request");
+        }
+        balances.get(debtUser).remove(creditUser);
+    }
+
 }

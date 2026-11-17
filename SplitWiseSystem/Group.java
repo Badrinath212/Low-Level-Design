@@ -23,11 +23,14 @@ public class Group {
         members.add(user);
     }
 
-    public boolean addExpense(Expense expense) {
+    public synchronized void addExpense(Expense expense) {
         expenses.add(expense);
         Map<User, Integer> debts = splitStrategy.equalSplit(expense, balanceSheet);
         balanceSheet.updateBalanceSheet(debts, expense.getPaidBy());
-        return true;
+    }
+
+    public synchronized void settleSplit(User debtUser, User creditUser) {
+        balanceSheet.settleSplit(debtUser, creditUser);
     }
 
 }

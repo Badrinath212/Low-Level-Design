@@ -1,8 +1,12 @@
 package SplitWiseSystem;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+
+import HotelBookingSystem.User;
 
 public class SplitWiseSystem {
     private List<User> users;
@@ -17,24 +21,45 @@ public class SplitWiseSystem {
 
     }
 
-    public void splitExpense(String groupId, String userId, Expense expense) {
-        if (userId == null || userId.isBlank()) {
+    public synchronized void settleSplit(String groupId, String userId, String creditorUserId) {
+        if (userId.isBlank()) {
             throw new IllegalArgumentException("UserId must contains at least one non-white space character");
         }
 
-        if (groupId == null || groupId.isBlank()) {
+        if (groupId.isBlank()) {
             throw new IllegalArgumentException("GroupId must contains at least one non-white space character");
         }
 
-        
+        Group group = getGroupById(groupId);
+        if (group == null) {
+            throw new RuntimeException("Group is not found");
+        }
+
     }
 
-    public Map<User, Map<User, Integer>> getBlanceSheetForGroup(String groupId, String userId) {
-        if (userId == null || userId.isBlank()) {
+    public synchronized void splitExpense(String groupId, String userId, Expense expense) {
+        if (userId.isBlank()) {
             throw new IllegalArgumentException("UserId must contains at least one non-white space character");
         }
 
-        if (groupId == null || groupId.isBlank()) {
+        if (groupId.isBlank()) {
+            throw new IllegalArgumentException("GroupId must contains at least one non-white space character");
+        }
+
+        Group group = getGroupById(groupId);
+        if (group == null) {
+            throw new RuntimeException("Group is not found");
+        }
+
+        group.addExpense(expense);
+    }
+
+    public synchronized Map<User, Map<User, Integer>> getBlanceSheetForGroup(String groupId, String userId) {
+        if (userId.isBlank()) {
+            throw new IllegalArgumentException("UserId must contains at least one non-white space character");
+        }
+
+        if (groupId.isBlank()) {
             throw new IllegalArgumentException("GroupId must contains at least one non-white space character");
         }
 
@@ -81,6 +106,17 @@ public class SplitWiseSystem {
 
     public void addGroup(Group group) {
         groups.add(group);
+    }
+
+    public synchronized void addMemberToGroup(String groupId, User user) {
+        if (groupId.isBlank()) {
+            throw new IllegalArgumentException("GroupId must contain atleast one non-empty character")
+        }
+        Group group = getGroupById(groupId);
+        if (group == null) {
+            throw new RuntimeException("Invalid group");
+        }
+        group.addMember(user);
     }
 }
 
