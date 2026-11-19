@@ -1,6 +1,8 @@
 package SplitWiseSystem;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class User {
     private String userId;
@@ -8,15 +10,13 @@ public class User {
     private String email;
     private String phoneNumber;
     private List<Group> groups;
-    private String status;
 
-    public User(String userId, String userName, String email, String phoneNumber, List<Group> groups, String status) {
-        this.userId = userId;
+    public User(String userId, String userName, String email, String phoneNumber, List<Group> groups) {
+        this.userId = Objects.requireNonNull(userId, "UserId cannot be null");
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
-        this.groups = groups;
-        this.status = status;
+        this.groups = new ArrayList<>(Objects.requireNonNull(groups, "Groups cannot be null"));
     }
 
     public String getUserId() {

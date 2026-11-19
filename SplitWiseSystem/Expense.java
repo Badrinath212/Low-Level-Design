@@ -18,6 +18,7 @@ public class Expense {
         if (amount < 0) {
             throw new IllegalArgumentException("Invalid amount");
         }
+        this.amount = amount;
         this.paidBy = Objects.requireNonNull(paidBy, "User cannot be null");
         this.participents = Objects.requireNonNull(participents, "participents cannot be null");
     }
