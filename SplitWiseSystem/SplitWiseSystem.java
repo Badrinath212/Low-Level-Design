@@ -18,10 +18,37 @@ public class SplitWiseSystem {
     public static void main(String[] args) {
         List<User> users = new ArrayList<>(List.of(
             new User(UUID.randomUUID().toString(), "Alice", "alice@gmail.com", "123456789", new ArrayList<>()),
-            new User(UUID.randomUUID().toString(), "Bob", "bob@gmail.com", "123456789", new ArrayList<>())
+            new User(UUID.randomUUID().toString(), "Bob", "bob@gmail.com", "123456789", new ArrayList<>()),
+            new User(UUID.randomUUID().toString(), "Charlie", "charlie@gmail.com", "123456789", new ArrayList<>())
         ));
         SplitWiseSystem system = new SplitWiseSystem(users, new ArrayList<>());
-        Group group1 = system.createGroup("Boys", users);
+        Group group = system.createGroup("Boys", users);
+
+        User alice = users.get(0);
+        User bob = users.get(1);
+
+        system.splitExpense(group.getGroupId(), alice.getUserId(),
+            new Expense(UUID.randomUUID().toString(), "Groceries", 12000, alice, users));
+        system.splitExpense(group.getGroupId(), bob.getUserId(),
+            new Expense(UUID.randomUUID().toString(), "Dinner", 6000, bob, users));
+
+        printBalances("Balances after expenses", system, group.getGroupId(), users);
+    }
+
+    private static void printBalances(String title, SplitWiseSystem system, String groupId, List<User> users) {
+        System.out.println("\n" + title + ":");
+        Map<User, Map<User, Integer>> balances =
+            system.getBlanceSheetForGroup(groupId, users.get(0).getUserId());
+        if (balances.isEmpty()) {
+            System.out.println("No outstanding balances");
+            return;
+        }
+        for (Map.Entry<User, Map<User, Integer>> debtor : balances.entrySet()) {
+            for (Map.Entry<User, Integer> debt : debtor.getValue().entrySet()) {
+                System.out.printf("%s owes %s $%.2f%n",
+                    debtor.getKey().getUserName(), debt.getKey().getUserName(), debt.getValue() / 100.0);
+            }
+        }
     }
 
     public synchronized Group createGroup(String groupName, List<User> members) {
@@ -86,26 +113,6 @@ public class SplitWiseSystem {
         return group.getBalanceSheet();
         
     }
-
-    public synchronized Map<User, Integer> getBalancesForUser(String groupId, String userId) {
-        Group group = getGroupById(groupId);
-        if (group == null) {
-            throw new RuntimeException("Invalid group");
-        }
-        if (!isValidUser(userId)) {
-            throw new RuntimeException("Invalid user");
-        }
-        return group.getBalancesForUser(getUserById(userId));
-    }
-
-    public synchronized void simplifyDebts(String groupId) {
-        Group group = getGroupById(groupId);
-        if (group == null) {
-            throw new RuntimeException("Invalid group");
-        }
-        group.simplifyDebts();
-    }
- 
 
     public Group getGroupById(String groupId) {
         for (Group group : groups) {

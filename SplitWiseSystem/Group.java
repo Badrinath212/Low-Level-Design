@@ -33,10 +33,6 @@ public class Group {
         return balanceSheet.getBalanceSheet();
     }
 
-    public synchronized Map<User, Integer> getBalancesForUser(User user) {
-        return balanceSheet.getBalancesForUser(user);
-    }
-
     public synchronized void addMember(User user) {
         if (!members.contains(user)) {
             members.add(user);
@@ -52,10 +48,6 @@ public class Group {
 
     public synchronized void settleSplit(User debtUser, User creditUser) {
         balanceSheet.settleSplit(debtUser, creditUser);
-    }
-
-    public synchronized void simplifyDebts() {
-        balanceSheet.simplifyDebts();
     }
 
 }
