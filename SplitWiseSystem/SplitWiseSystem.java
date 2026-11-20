@@ -45,7 +45,7 @@ public class SplitWiseSystem {
         }
         for (Map.Entry<User, Map<User, Integer>> debtor : balances.entrySet()) {
             for (Map.Entry<User, Integer> debt : debtor.getValue().entrySet()) {
-                System.out.printf("%s owes %s $%.2f%n",
+                System.out.printf("%s owes %s Rs%.2f%n",
                     debtor.getKey().getUserName(), debt.getKey().getUserName(), debt.getValue());
             }
         }
