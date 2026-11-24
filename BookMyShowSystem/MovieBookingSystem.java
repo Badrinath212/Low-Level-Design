@@ -3,22 +3,70 @@ package BookMyShowSystem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class MovieBookingSystem {
     private List<Theater> theaters;
     private List<Movie> runningMovies;
 
-    public boolean bookMovie(String movieId, String theaterID, String screenID, List<Seat> seats) {
+    public static void main(String[] args) {
+        
+    }
+
+    public synchronized void markSeatStatusHealper(List<Seat> seats, Show show) {
+        for (Seat s : seats) {
+            if (s.getBookingStatus().equals(BookingStatus.AVAILABLE)) {
+                s.setBookingStatus(BookingStatus.PENDING);
+                show.addToLockedSeats(s);
+                s.setTtl();
+            }
+        }
+    } 
+
+    public synchronized boolean makePayment(List<Seat> seats, Show show) {
+        for (Seat seat : seats) {
+            seat.setBookingStatus(BookingStatus.RESERVED);
+            show.removeLockForSeat(seat);
+        }
+        Ticket ticket = new Ticket(UUID.randomUUID().toString(), show, seats);
+        show.addBooking(ticket);
+        return true;
+    }
+
+    public synchronized boolean bookMovie(String movieID, String theaterID, String screenID, List<Seat> seats, String showID) {
         Theater theater = getTheaterIfAvailable(theaterID);
         if (theater == null) return false;
         for (Screen screen : theater.getScreens()) {
             if (screen.getScreenID().equals(screenID)) {
                 List<Show> shows = screen.getShows();
                 for (Show show : shows) {
-                    
+                    if (show.getShowID().equals(showID)) {
+                        List<List<Seat>> totalSeats = show.getSeats();
+                        List<Seat> goldSeats = totalSeats.get(0);
+                        List<Seat> platSeats = totalSeats.get(1);
+                        List<Seat> diamondSeats = totalSeats.get(2);
+                        for (Seat seat : seats) {
+                            SeatType seatType = seat.getSeatType();
+                            if (seatType == SeatType.GOLD) {
+                                markSeatStatusHealper(goldSeats, show);
+                            } else if (seatType == SeatType.PLATINUM) {
+                                markSeatStatusHealper(platSeats, show);
+                            } else if (seatType == SeatType.DIAMOND) {
+                                markSeatStatusHealper(diamondSeats, show);
+                            } else {
+                                throw new IllegalArgumentException("Invalid seat");
+                            }
+                        }
+                        // we have to call the payment method
+                        boolean paymentStatus = makePayment(seats, show);
+                        if (paymentStatus) {
+
+                        }
+                    }
                 }
             }
         }
+        return true;
     }
 
     public synchronized List<List<List<Seat>>> getSeatsForTheaterByMovieID(String theaterID, String movieID) {
