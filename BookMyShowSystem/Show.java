@@ -15,6 +15,16 @@ public class Show {
     private List<List<Seat>> seats;
     private List<Seat> lockedSeats;
 
+    public Show(String showID, Movie movie, LocalDate date, Booking booking, LocalTime time, List<List<Seat>> seats, List<Seat> lockedSeats) {
+        this.showID = showID;
+        this.movie = movie;
+        this.date = date;
+        this.booking = booking;
+        this.time = time;
+        this.seats = seats;
+        this.lockedSeats = lockedSeats;
+    }
+
 
     public Movie getMovie() {
         return movie;

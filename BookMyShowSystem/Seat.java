@@ -11,6 +11,18 @@ public class Seat {
     private BookingStatus bookingStatus;
     private long ttlNanos;
 
+    public Seat(String seatId, int seatNo, SeatType seatType, Character rowCharacter, BookingStatus bookingStatus) {
+        this.seatId = seatId;
+        this.seatNo = seatNo;
+        this.seatType = seatType;
+        this.rowCharacter = rowCharacter;
+        this.bookingStatus = bookingStatus;
+    }
+
+    public String getSeatID() {
+        return seatId;
+    }
+
     public void setTtl() {
        ttlNanos = Duration.ofSeconds(600).toNanos();
     }

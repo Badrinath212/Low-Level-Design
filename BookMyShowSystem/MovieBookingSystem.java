@@ -1,5 +1,7 @@
 package BookMyShowSystem;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,13 +11,79 @@ public class MovieBookingSystem {
     private List<Theater> theaters;
     private List<Movie> runningMovies;
 
-    public static void main(String[] args) {
-        
+    public MovieBookingSystem(List<Theater> theaters, List<Movie> runningMovies) {
+        this.theaters = theaters;
+        this.runningMovies = runningMovies;
     }
 
-    public synchronized void markSeatStatusHealper(List<Seat> seats, Show show) {
+    public static void main(String[] args) {
+        MovieBookingSystem bookingSystem = new MovieBookingSystem(new ArrayList<>(), new ArrayList<>());
+        String movieID = addSampleData(bookingSystem);
+        System.out.println("Sample shows loaded: " + bookingSystem.checkAvailabilityByMovie(movieID).size());
+
+        List<Show> shows = bookingSystem.checkAvailabilityByMovie(movieID);
+    }
+
+    private static void showSeatsForShow(List<Show> shows) {
+        for (Show show : shows) {
+            for (List<Seat> catList : show.getSeats()) {
+                for (Seat seat : catList) {
+                    System.out
+                }
+            }
+        }
+    }
+
+    private static String addSampleData(MovieBookingSystem bookingSystem) {
+        Movie movie = new Movie(UUID.randomUUID().toString(), LocalDate.now(), 145);
+        Theater theater = new Theater(
+                UUID.randomUUID().toString(),
+                "Whitefield",
+                new ArrayList<>(),
+                "Srinivasa"
+        );
+        Screen screen = new Screen(theater, UUID.randomUUID().toString(), "1");
+
+        List<List<Seat>> seatsByType = new ArrayList<>();
+        seatsByType.add(createSeats("G", SeatType.GOLD, 4));
+        seatsByType.add(createSeats("P", SeatType.PLATINUM, 4));
+        seatsByType.add(createSeats("D", SeatType.DIAMOND, 4));
+
+        Show show = new Show(
+                UUID.randomUUID().toString(),
+                movie,
+                LocalDate.now(),
+                new Booking(UUID.randomUUID().toString(), new ArrayList<>()),
+                LocalTime.of(19, 0),
+                seatsByType,
+                new ArrayList<>()
+        );
+
+        bookingSystem.addNewMovie(movie);
+        bookingSystem.addNewTheater(theater);
+        movie.addTheater(theater);
+        theater.addScreen(screen);
+        screen.addShow(show);
+        return movie.getMovieID();
+    }
+
+    private static List<Seat> createSeats(String prefix, SeatType seatType, int count) {
+        List<Seat> seats = new ArrayList<>();
+        for (int seatNumber = 1; seatNumber <= count; seatNumber++) {
+            seats.add(new Seat(
+                    prefix + "-A" + seatNumber,
+                    seatNumber,
+                    seatType,
+                    'A',
+                    BookingStatus.AVAILABLE
+            ));
+        }
+        return seats;
+    }
+
+    public synchronized void markSeatStatusHealper(List<Seat> seats, Show show, String seatID) {
         for (Seat s : seats) {
-            if (s.getBookingStatus().equals(BookingStatus.AVAILABLE)) {
+            if (s.getSeatID().equals(seatID) && s.getBookingStatus().equals(BookingStatus.AVAILABLE)) {
                 s.setBookingStatus(BookingStatus.PENDING);
                 show.addToLockedSeats(s);
                 s.setTtl();
@@ -48,11 +116,11 @@ public class MovieBookingSystem {
                         for (Seat seat : seats) {
                             SeatType seatType = seat.getSeatType();
                             if (seatType == SeatType.GOLD) {
-                                markSeatStatusHealper(goldSeats, show);
+                                markSeatStatusHealper(goldSeats, show, seat.getSeatID());
                             } else if (seatType == SeatType.PLATINUM) {
-                                markSeatStatusHealper(platSeats, show);
+                                markSeatStatusHealper(platSeats, show, seat.getSeatID());
                             } else if (seatType == SeatType.DIAMOND) {
-                                markSeatStatusHealper(diamondSeats, show);
+                                markSeatStatusHealper(diamondSeats, show, seat.getSeatID());
                             } else {
                                 throw new IllegalArgumentException("Invalid seat");
                             }
@@ -60,13 +128,13 @@ public class MovieBookingSystem {
                         // we have to call the payment method
                         boolean paymentStatus = makePayment(seats, show);
                         if (paymentStatus) {
-
+                            return true;
                         }
                     }
                 }
             }
         }
-        return true;
+        return false;
     }
 
     public synchronized List<List<List<Seat>>> getSeatsForTheaterByMovieID(String theaterID, String movieID) {
@@ -122,6 +190,22 @@ public class MovieBookingSystem {
             if (movie.getMovieID().equals(movieId)) return movie;
         }
         return null;
+    }
+
+    public synchronized void addNewMovie(Movie movie) {
+        runningMovies.add(movie);
+    }
+
+    public synchronized void removeNewMovie(Movie movie) {
+        runningMovies.remove(movie);
+    }
+    
+    public synchronized void addNewTheater(Theater theater) {
+        theaters.add(theater);
+    }
+
+    public synchronized void removeNewTheater(Theater theater) {
+        theaters.remove(theater);
     }
 
 }
